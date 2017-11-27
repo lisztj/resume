@@ -1,0 +1,29 @@
+{
+  "name": "resume",
+  "version": "1.0.1",
+  "description": "resume",
+  "main": "index.js",
+  "dependencies": {
+    "html-webpack-plugin": "^2.30.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "npm run test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lisztj/resume.git"
+  },
+  "keywords": [
+    "resume",
+    "front",
+    "end",
+    "development"
+  ],
+  "author": "liszt",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/lisztj/resume/issues"
+  },
+  "homepage": "https://github.com/lisztj/resume#readme"
+}
