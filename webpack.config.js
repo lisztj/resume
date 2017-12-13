@@ -41,6 +41,19 @@ module.exports = {
                 }, {
                     loader: "postcss-loader"
                 }]
+            }, {
+                // 图片加载器，雷同file-loader，更适合图片，可以将较小的图片转成base64，减少http请求
+                // 如下配置，将小于8192byte的图片转成base64码
+                test: /\.(jpe?g|png|gif|svg)$/i,
+                loaders: [
+                    'image?{bypassOnDebug: true, progressive:true, \
+                        optimizationLevel: 3, pngquant:{quality: "65-80"}}',
+                    'url?limit=10000&name=img/[hash:8].[name].[ext]',
+                ]
+            },
+            {
+                test: /\.(woff|eot|ttf)$/i,
+                loader: 'url?limit=10000&name=fonts/[hash:8].[name].[ext]'
             }
         ]
     },
