@@ -1,60 +1,62 @@
-var path = require('path');
-var HtmlwebpackPlugin = require('html-webpack-plugin');
-//定义了一些文件夹的路径
-var ROOT_PATH = path.resolve(__dirname, './dist');
-var APP_PATH = path.resolve('./app/src/js/index.js');
-var BUILD_PATH = path.resolve('./build');
+// webpack.production.config.js
+const webpack = require('webpack');
+const HtmlwebpackPlugin = require('html-webpack-plugin');
+const ExtractTextPlugin = require('extract-text-webpack-plugin');
+const CleanWebpackPlugin = require("clean-webpack-plugin");
 
 module.exports = {
+    devtool: 'eval-source-map',
     //项目的文件夹 可以直接用文件夹名称 默认会找index.js 也可以确定是哪个文件名字
-    entry: './src',
+    entry: __dirname + '/src/js',
     //输出的文件名 合并以后的js会命名为bundle.js
     output: {
-        path: path.resolve(__dirname, './dist'),
-        publicPath: '/dist/',
-        filename: 'bundle.js'
+        path: __dirname + "/build",
+        filename: 'bundle-[hash].js'
     },
     devServer: {
-        historyApiFallback: true,
+        contentBase: "./src", //本地服务器所加载的页面所在的目录
+        historyApiFallback: true, //不跳转
         hot: true,
-        inline: true,
+        inline: true, //实时刷新
         progress: true,
     },
     module: {
-        loaders: [{
-                test: /\.css$/,
-                loaders: 'style-loader!css-loader'
-            },
-            {
-                test: /\.html$/,
-                loader: 'html-loader',
+        rules: [{
+                test: /(\.jsx|\.js)$/,
+                use: {
+                    loader: "babel-loader"
+                },
                 exclude: /node_modules/
             },
             {
-                test: /\.(eot|svg|ttf|woff|woff2)(\?\S*)?$/,
-                loader: 'file-loader'
-            }, {
-                test: /\.(png|jpe?g|gif|svg)(\?\S*)?$/,
-                loader: 'file-loader',
-                query: {
-                    name: '[name].[ext]?[hash]'
-                }
-            },
-            {
-                test: /\.jsx?$/,
-                loader: 'babel',
-                include: APP_PATH,
-                query: {
-                    presets: ['es2015']
-                }
+                test: /\.css$/,
+                use: [{
+                    loader: "style-loader"
+                }, {
+                    loader: "css-loader",
+                    options: {
+                        modules: true, // 指定启用css modules
+                        localIdentName: '[name]__[local]--[hash:base64:5]' // 指定css的类名格式
+                    }
+                }, {
+                    loader: "postcss-loader"
+                }]
             }
         ]
-    }
-
-    //添加我们的插件 会自动生成一个html文件
-    // plugins: [
-    //     new HtmlwebpackPlugin({
-    //         title: 'Hello World app'
-    //     })
-    // ]
+    },
+    plugins: [
+        new webpack.BannerPlugin('copyright by liszt'),
+        new HtmlwebpackPlugin({
+            template: __dirname + "/src/index.tmpl.html" //new 一个这个插件的实例，并传入相关的参数
+        }),
+        new webpack.HotModuleReplacementPlugin(), //热加载插件
+        new webpack.optimize.OccurrenceOrderPlugin(),
+        new webpack.optimize.UglifyJsPlugin(),
+        new ExtractTextPlugin("style.css"),
+        new CleanWebpackPlugin('build/*.*', {
+            root: __dirname,
+            verbose: true,
+            dry: false
+        })
+    ]
 };
