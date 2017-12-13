@@ -44,16 +44,16 @@ module.exports = {
             }, {
                 // 图片加载器，雷同file-loader，更适合图片，可以将较小的图片转成base64，减少http请求
                 // 如下配置，将小于8192byte的图片转成base64码
-                test: /\.(jpe?g|png|gif|svg)$/i,
-                loaders: [
-                    'image?{bypassOnDebug: true, progressive:true, \
-                        optimizationLevel: 3, pngquant:{quality: "65-80"}}',
-                    'url?limit=10000&name=img/[hash:8].[name].[ext]',
+                test: /\.((woff2?|svg)(\?v=[0-9]\.[0-9]\.[0-9]))|(woff2?|svg|jpe?g|png|gif|ico)$/,
+                loader: [
+                    // 小于10KB的图片会自动转成dataUrl
+                    'url-loader?limit=10240&name=img/[hash:8].[name].[ext]',
+                    'image?{bypassOnDebug:true, progressive:true,optimizationLevel:3,pngquant:{quality:"65-80",speed:4}}'
                 ]
             },
             {
-                test: /\.(woff|eot|ttf)$/i,
-                loader: 'url?limit=10000&name=fonts/[hash:8].[name].[ext]'
+                test: /\.((ttf|eot)(\?v=[0-9]\.[0-9]\.[0-9]))|(ttf|eot)$/,
+                loader: 'url-loader?limit=10000&name=fonts/[hash:8].[name].[ext]'
             }
         ]
     },
