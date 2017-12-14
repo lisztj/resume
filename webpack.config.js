@@ -1,10 +1,13 @@
 // webpack.production.config.js
 const path = require('path');
+// var $ = require('jquery');
+// var jquery = require('jquery');
 const webpack = require('webpack');
 const HtmlwebpackPlugin = require('html-webpack-plugin');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
 const CleanWebpackPlugin = require("clean-webpack-plugin");
-// const CopyWebpackPlugin = require('copy-webpack-plugin');
+const ImageminPlugin = require('imagemin-webpack-plugin').default
+    // const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 module.exports = {
     devtool: 'eval-source-map',
@@ -15,6 +18,9 @@ module.exports = {
         path: __dirname + "/build",
         filename: 'bundle-[hash].js'
     },
+    // externals: {
+    //     '$': 'window.jQuery'
+    // },
     devServer: {
         contentBase: "./src", //本地服务器所加载的页面所在的目录
         historyApiFallback: true, //不跳转
@@ -24,6 +30,15 @@ module.exports = {
     },
     module: {
         rules: [{
+                test: require.resolve('jquery'),
+                use: [{
+                    loader: 'expose-loader',
+                    options: 'jQuery'
+                }, {
+                    loader: 'expose-loader',
+                    options: '$'
+                }]
+            }, {
                 test: /\.(htm|html)$/i,
                 loader: 'html-withimg-loader'
             },
@@ -44,16 +59,48 @@ module.exports = {
             },
             {
                 test: /\.css$/,
-                loader: ExtractTextPlugin.extract("css-loader")
+                use: ExtractTextPlugin.extract({
+                    fallback: "style-loader",
+                    use: 'css-loader'
+                })
             }, {
                 // 图片加载器，雷同file-loader，更适合图片，可以将较小的图片转成base64，减少http请求
                 // 如下配置，将小于8192byte的图片转成base64码
                 // test: /\.((woff2?|svg)(\?v=[0-9]\.[0-9]\.[0-9]))|(woff2?|svg|jpe?g|png|gif|ico)$/,
-                test: /\.(jpe?g|png|gif)$/,
+                test: /\.(jpe?g|png|gif)$/i,
                 loaders: [
-                    // 小于10KB的图片会自动转成dataUrl
-                    'url-loader?limit=1024&name=images/[name]-[hash:5].[ext]',
-                    // 'image-webpack-loader?{optimizationLevel: 7, interlaced: false, pngquant:{quality: "65-90", speed: 4}, mozjpeg: {quality: 65}}'
+                    'file-loader??limit=10240&name=images/[name]-[hash:5].[ext]', { //图片压缩
+                        loader: 'image-webpack-loader',
+                        options: {
+                            gifsicle: {
+                                interlaced: false,
+                            },
+                            optipng: {
+                                optimizationLevel: 7,
+                            },
+                            pngquant: {
+                                quality: '65-90',
+                                speed: 4
+                            },
+                            mozjpeg: {
+                                progressive: true,
+                                quality: 65
+                            },
+                            svgo: {
+                                plugins: [{
+                                        removeViewBox: false
+                                    },
+                                    {
+                                        removeEmptyAttrs: true
+                                    }
+                                ]
+                            },
+                            // Specifying webp here will create a WEBP version of your JPG/PNG images
+                            webp: {
+                                quality: 75
+                            }
+                        }
+                    }
                 ]
             },
             {
@@ -68,33 +115,39 @@ module.exports = {
             },
             {
                 test: /\.((woff2?|svg)(\?v=[0-9]\.[0-9]\.[0-9])|(ttf|eot)(\?v=[0-9]\.[0-9]\.[0-9]))|(woff2?|svg|ttf|eot)$/,
-                loader: 'url-loader?limit=1024&name=fonts/[hash:8].[name].[ext]'
+                loader: 'url-loader?limit=10240&name=fonts/[hash:8].[name].[ext]'
             }
         ]
     },
     plugins: [
+        // new ImageminPlugin({ //图片压缩
+        //     disable: process.env.NODE_ENV !== 'production',
+        //     pngquant: {
+        //         quality: '80-90'
+        //     }
+        // }),
         new HtmlwebpackPlugin({
             template: __dirname + "/src/index.html",
             filename: 'index.html',
             title: 'My App',
-            inject: 'body',
+            inject: 'head',
             favicon: __dirname + '/src/favicon.ico',
-            minify: true,
+            minify: { //html压缩
+                removeComments: true, //移除注释
+                collapseWhitespace: true //移除空格
+            },
             hash: true,
             cache: false,
-            showErrors: false,
-            "chunks": {
-                // "head": {
-                //     "entry": "js/index.js",
-                //     "css": ["bundle.css"]
-                // },
-                xhtml: false
-            }
+            showErrors: true,
+            chunks: 'all',
+            excludeChunks: [],
+            xhtml: false
+
         }),
         new webpack.ProvidePlugin({
-            $: "jquery",
-            jQuery: "jquery",
-            "window.jQuery": "jquery"
+            'window.jQuery': 'jquery',
+            'window.$': 'jquery',
+            $: 'jquery'
         }),
         new webpack.NoEmitOnErrorsPlugin(),
         new webpack.DefinePlugin({
