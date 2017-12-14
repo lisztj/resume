@@ -24,8 +24,8 @@ module.exports = {
     },
     module: {
         rules: [{
-                test: /\.html$/,
-                loader: 'html-loader'
+                test: /\.(htm|html)$/i,
+                loader: 'html-withimg-loader'
             },
             {
                 test: /(\.jsx|\.js)$/,
@@ -44,7 +44,7 @@ module.exports = {
             },
             {
                 test: /\.css$/,
-                loader: 'style-loader!css-loader'
+                loader: ExtractTextPlugin.extract("css-loader")
             }, {
                 // 图片加载器，雷同file-loader，更适合图片，可以将较小的图片转成base64，减少http请求
                 // 如下配置，将小于8192byte的图片转成base64码
@@ -54,8 +54,6 @@ module.exports = {
                     // 小于10KB的图片会自动转成dataUrl
                     'url-loader?limit=1024&name=images/[name]-[hash:5].[ext]',
                     // 'image-webpack-loader?{optimizationLevel: 7, interlaced: false, pngquant:{quality: "65-90", speed: 4}, mozjpeg: {quality: 65}}'
-
-
                 ]
             },
             {
@@ -75,13 +73,44 @@ module.exports = {
         ]
     },
     plugins: [
-        new webpack.BannerPlugin('copyright by liszt'),
         new HtmlwebpackPlugin({
-            template: __dirname + "/src/index.tmpl.html" //new 一个这个插件的实例，并传入相关的参数
+            template: __dirname + "/src/index.html",
+            filename: 'index.html',
+            title: 'My App',
+            inject: 'body',
+            favicon: __dirname + '/src/favicon.ico',
+            minify: true,
+            hash: true,
+            cache: false,
+            showErrors: false,
+            "chunks": {
+                // "head": {
+                //     "entry": "js/index.js",
+                //     "css": ["bundle.css"]
+                // },
+                xhtml: false
+            }
         }),
+        new webpack.ProvidePlugin({
+            $: "jquery",
+            jQuery: "jquery",
+            "window.jQuery": "jquery"
+        }),
+        new webpack.NoEmitOnErrorsPlugin(),
+        new webpack.DefinePlugin({
+            'process.env': {
+                NODE_ENV: JSON.stringify(process.env.NODE_ENV),
+            },
+        }),
+        new webpack.BannerPlugin('copyright by liszt'),
+
+        // new HtmlwebpackPlugin({
+        //     template: __dirname + "/src/index.tmpl.html" //new 一个这个插件的实例，并传入相关的参数
+        // }),
         new webpack.HotModuleReplacementPlugin(), //热加载插件
         new webpack.optimize.OccurrenceOrderPlugin(),
-        new webpack.optimize.UglifyJsPlugin({
+        // new webpack.optimize.CommonsChunkPlugin('common.js'),
+        new webpack.optimize.UglifyJsPlugin({ //压缩js
             compress: {
                 warnings: false,
             },
@@ -89,7 +118,7 @@ module.exports = {
                 comments: false,
             },
         }),
-        new ExtractTextPlugin("style.css"),
+        new ExtractTextPlugin("bundle.css"),
         new CleanWebpackPlugin(['build/*.*', 'build/images/*.*', 'build/fonts/*.*'], {
             root: __dirname,
             verbose: true,
