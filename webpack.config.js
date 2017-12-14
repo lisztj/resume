@@ -1,8 +1,10 @@
 // webpack.production.config.js
+const path = require('path');
 const webpack = require('webpack');
 const HtmlwebpackPlugin = require('html-webpack-plugin');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
 const CleanWebpackPlugin = require("clean-webpack-plugin");
+// const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 module.exports = {
     devtool: 'eval-source-map',
@@ -22,38 +24,53 @@ module.exports = {
     },
     module: {
         rules: [{
+                test: /\.html$/,
+                loader: 'html-loader'
+            },
+            {
                 test: /(\.jsx|\.js)$/,
-                use: {
-                    loader: "babel-loader"
-                },
-                exclude: /node_modules/
+                loader: 'babel-loader',
+                exclude: __dirname + '/node_modules/',
+                include: __dirname + '/src/js',
+                query: {
+                    presets: ['react', 'es2015'],
+                    plugins: [
+                        'react-html-attrs', ["import", {
+                            libraryName: "antd",
+                            style: "css"
+                        }]
+                    ]
+                }
             },
             {
                 test: /\.css$/,
-                use: [{
-                    loader: "style-loader"
-                }, {
-                    loader: "css-loader",
-                    options: {
-                        modules: true, // 指定启用css modules
-                        localIdentName: '[name]__[local]--[hash:base64:5]' // 指定css的类名格式
-                    }
-                }, {
-                    loader: "postcss-loader"
-                }]
+                loader: 'style-loader!css-loader'
             }, {
                 // 图片加载器，雷同file-loader，更适合图片，可以将较小的图片转成base64，减少http请求
                 // 如下配置，将小于8192byte的图片转成base64码
-                test: /\.((woff2?|svg)(\?v=[0-9]\.[0-9]\.[0-9]))|(woff2?|svg|jpe?g|png|gif|ico)$/,
-                loader: [
+                // test: /\.((woff2?|svg)(\?v=[0-9]\.[0-9]\.[0-9]))|(woff2?|svg|jpe?g|png|gif|ico)$/,
+                test: /\.(jpe?g|png|gif)$/,
+                loaders: [
                     // 小于10KB的图片会自动转成dataUrl
-                    'url-loader?limit=10240&name=img/[hash:8].[name].[ext]',
-                    'image?{bypassOnDebug:true, progressive:true,optimizationLevel:3,pngquant:{quality:"65-80",speed:4}}'
+                    'url-loader?limit=1024&name=images/[name]-[hash:5].[ext]',
+                    // 'image-webpack-loader?{optimizationLevel: 7, interlaced: false, pngquant:{quality: "65-90", speed: 4}, mozjpeg: {quality: 65}}'
+
+
                 ]
             },
             {
-                test: /\.((ttf|eot)(\?v=[0-9]\.[0-9]\.[0-9]))|(ttf|eot)$/,
-                loader: 'url-loader?limit=10000&name=fonts/[hash:8].[name].[ext]'
+                test: /\.(ico)$/,
+                loaders: [
+                    // 小于10KB的图片会自动转成dataUrl
+                    'url-loader?limit=1024&name=[name]-[hash:5].[ext]',
+                    // 'image-webpack-loader?{optimizationLevel: 7, interlaced: false, pngquant:{quality: "65-90", speed: 4}, mozjpeg: {quality: 65}}'
+
+
+                ]
+            },
+            {
+                test: /\.((woff2?|svg)(\?v=[0-9]\.[0-9]\.[0-9])|(ttf|eot)(\?v=[0-9]\.[0-9]\.[0-9]))|(woff2?|svg|ttf|eot)$/,
+                loader: 'url-loader?limit=1024&name=fonts/[hash:8].[name].[ext]'
             }
         ]
     },
@@ -64,9 +81,16 @@ module.exports = {
         }),
         new webpack.HotModuleReplacementPlugin(), //热加载插件
         new webpack.optimize.OccurrenceOrderPlugin(),
-        new webpack.optimize.UglifyJsPlugin(),
+        new webpack.optimize.UglifyJsPlugin({
+            compress: {
+                warnings: false,
+            },
+            output: {
+                comments: false,
+            },
+        }),
         new ExtractTextPlugin("style.css"),
-        new CleanWebpackPlugin('build/*.*', {
+        new CleanWebpackPlugin(['build/*.*', 'build/images/*.*', 'build/fonts/*.*'], {
             root: __dirname,
             verbose: true,
             dry: false
