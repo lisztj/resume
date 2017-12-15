@@ -4,10 +4,6 @@
 
 > This template is HTML. use this command: ``
 
-## Documentation
-
-- [For this template](http://vuejs-templates.github.io/webpack): common questions specific to this template are answered and each part is described in greater detail
-
 <div align="center">
   <a href="https://github.com/webpack/webpack">
     <img width="200" heigth="200" src="https://webpack.js.org/assets/icon-square-big.svg">
