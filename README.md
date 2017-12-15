@@ -25,6 +25,8 @@
 	<a href="https://gitter.im/webpack/webpack">
 		<img src="https://badges.gitter.im/webpack/webpack.svg">
 	</a>
+
+    
 ## Usage
 
 This is a project template for [webpack](). **It is recommended to use npm 3+ for a more efficient dependency tree.**
