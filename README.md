@@ -1,8 +1,5 @@
 # resume
 
-
-# vue-webpack-boilerplate
-
 > 前端开发简历
 
 > This template is HTML. use this command: ``
